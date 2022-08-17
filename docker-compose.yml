@@ -1,0 +1,14 @@
+version: "3"
+services:
+  postgres:
+    container_name: postgres-hw
+    image: postgres:13.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DATABASE: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      # - ./db:/01-init.sh
+      - /tmp/postgres:/tmp/postgres
