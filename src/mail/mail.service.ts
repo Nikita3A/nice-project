@@ -12,7 +12,7 @@ export class MailService {
   ) {}
 
   async sendUserConfirmation(user: UserEmailConfirmation, token: string) {
-    const url = `https://${this.cfg.get('SERVER_HOST')}/auth/users/confirm?token=${token}`;
+    const url = `http://${this.cfg.get('SERVER_HOST')}:${this.cfg.get('PORT')}/api/auth/users/confirm?token=${token}`;
 
     await this.mailerService.sendMail({
       to: user.email,

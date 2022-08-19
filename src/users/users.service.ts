@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from './models/user.entity';
-import { User, UserRole } from './interfaces/user.interface';
+import { UpdateUser, User, UserRole } from './interfaces/user.interface';
 import { ReqUpdateUserDTO } from './dtos/requests/update-user.dto';
 import { StorageService } from 'src/storage/storage.service';
 
@@ -20,50 +20,40 @@ export class UsersService {
         newUser.name = user.name;
         newUser.email = user.email;
         newUser.password = passwordHash;
-        newUser.isEmailVerified = false;
+        newUser.email_verified = false;
         newUser.role = UserRole.USER;
         newUser.created_on = new Date().toLocaleDateString();
         newUser.last_login = new Date().toLocaleDateString();
         return this.usersRepository.save(newUser);
     }
 
-    findAll(): Promise<User[]> {
+    getUsers(): Promise<User[]> {
         return this.usersRepository.find();
     }
 
-    findOne(id: number): Promise<User> {
-        return this.usersRepository.findOne(id);
+    findOne(param: string): Promise<User> {
+        return this.usersRepository.findOne({email: param});
     }
 
     findOneById(id: number): Promise<User> {
         return this.usersRepository.findOne(id);
     }
 
-    findOneByEmail(email: string): Promise<User> {
-        return this.usersRepository.findOne({email: email});
-    }
-
-    async findByEmail(email: string): Promise<User> {
-        return await this.usersRepository.findOne({email: email});
-    }
-
-    delete(id: number): Promise<DeleteResult> {
+    deleteUserById(id: number): Promise<DeleteResult> {
         return this.usersRepository.delete(id);
     }
 
-    async verifyEmail(id: number): Promise<UpdateResult> {        
-        return await this.usersRepository.update(id, {isEmailVerified: true});
+    verifyEmail(id: number): Promise<UpdateResult> {        
+        return this.usersRepository.update(id, {email_verified: true});
     }
 
-    async resetPassword(id: number, password: string): Promise<UpdateResult> {        
-        return await this.usersRepository.update(id, {password: password});
-    }
-
-    async updateById(id: number, data: ReqUpdateUserDTO, avatar?: Express.Multer.File) {
-        let updatedUser, updatedAvatar;
+    async updateUserById(id: number, data: UpdateUser, avatar?: Express.Multer.File) {
+        console.log('log: ', data);
+        
+        let updatedUser, updatedAvatar, updatedPassword;
         if (data.name) updatedUser = await this.usersRepository.update(id, {name: data.name});
         if (avatar) updatedAvatar = await this.storageService.updateAvatar(id, avatar);
-
-        return {updatedUser, updatedAvatar}
+        if (data.password) updatedPassword = await this.usersRepository.update(id, {password: data.password});
+        return {updatedPassword, updatedUser, updatedAvatar}
     }
 }

@@ -43,7 +43,7 @@ export class TeamService {
 
     async addUserToTeam (ids: Ids, email: string, role: UserRoleInTeam) {
         const team = await this.teamRepository.findOne(ids.teamId);        
-        const user = await this.usersService.findByEmail(email);
+        const user = await this.usersService.findOne(email);
         if (!user) throw new HttpException('You can not add the user with such an email because the user does not exist', HttpStatus.BAD_REQUEST);
         
         const member = await this.isMemberOfTeam(team.id, ids.userId);
@@ -84,7 +84,7 @@ export class TeamService {
         const member = await this.isMemberOfTeam(teamId, userId);
         let assignedTo;
 
-        const user = await this.usersService.findByEmail(taskDTO.assignedTo);
+        const user = await this.usersService.findOne(taskDTO.assignedTo);
         assignedTo = await this.memberService.findUser(teamId, user?.id);
 
         if (assignedTo == undefined) assignedTo = member.user;
@@ -108,7 +108,7 @@ export class TeamService {
         let assignee;
 
         if (body.assignedTo) {
-            const userToassign = await this.usersService.findByEmail(body.assignedTo);
+            const userToassign = await this.usersService.findOne(body.assignedTo);
             assignee = await this.memberService.findUser(ids.teamId, userToassign?.id);
             if (!assignee) throw new HttpException('Assignee is not member of the team', HttpStatus.BAD_REQUEST);
         }

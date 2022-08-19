@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/interfaces/user.interface'
+import { UpdateUser, User } from '../users/interfaces/user.interface'
 import { Repository } from 'typeorm';
 import { TokenEntity } from './models/token.entity';
 import { UsersService } from 'src/users/users.service';
@@ -23,7 +23,7 @@ export class AuthService {
     ) {}
 
     async signup(userData: ReqSignUpDTO) {
-        const user = await this.usersService.findByEmail(userData.email);
+        const user = await this.usersService.findOne(userData.email);
         if (user) throw new HttpException('User with such email already exist', HttpStatus.BAD_REQUEST);
 
         const userToConfirm = {
@@ -39,19 +39,20 @@ export class AuthService {
     }
 
     async signin(credentials: ReqSignInDTO) {
-        const isUserExist = await this.usersService.findByEmail(credentials.email);
+        const isUserExist = await this.usersService.findOne(credentials.email);
         if (!isUserExist) throw new HttpException('User with such email does not exist', HttpStatus.FORBIDDEN);
         
         if (isUserExist.isEmailVerified == false) throw new HttpException('Verify your email', HttpStatus.FORBIDDEN);
         
-        return this.validateUser(credentials.email, credentials.password).then((user) => {
+        return await this.validateUser(credentials.email, credentials.password).then((user) => {
             return this.generateJWT(user);
         });  
     }
 
     validateUser(email: string, password: string) {
-        return this.usersService.findByEmail(email).then((user) => {
-            const isPasswordRight = this.comparePasswords(password, user.password);
+        return this.usersService.findOne(email).then(async (user) => {            
+            const isPasswordRight = await this.comparePasswords(password, user.password);
+            
             if (isPasswordRight) {
                 const {password, ...result} = user;
                 return result;
@@ -63,13 +64,13 @@ export class AuthService {
 
     async verifyEmail(token: string) {
         const userFromPayload = this.getUserDataFromToken(token);
-        const user = await this.usersService.findByEmail(userFromPayload.email);
+        const user = await this.usersService.findOne(userFromPayload.email);
 
         return await this.usersService.verifyEmail(user.id);
     }
 
     async forgotPassword(email: string) {
-        const user = await this.usersService.findByEmail(String(email));
+        const user = await this.usersService.findOne(String(email));
         
         if (!user) throw new HttpException('User with such email does not exist', HttpStatus.FORBIDDEN);
         
@@ -81,11 +82,17 @@ export class AuthService {
     }
 
     async resetPassword(token: string, password: ReqResetPasswordDTO) {
+        console.log('purePass: ', password);
+        
         const userDataFromToken: User = this.getUserDataFromToken(token);
         const passwordHash = await this.hashPassword(password.password);
-        userDataFromToken.password = passwordHash;
+        const pass: UpdateUser = {
+            password: passwordHash
+        };
+        console.log('hash: ', passwordHash);
         
-        return this.usersService.resetPassword(userDataFromToken.id, passwordHash);
+        // return this.usersService.resetPassword(userDataFromToken.id, passwordHash);
+        return this.usersService.updateUserById(userDataFromToken.id, pass);
     }
 
     generateJWT(user: User): Promise <string> {

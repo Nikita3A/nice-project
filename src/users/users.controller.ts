@@ -4,7 +4,7 @@ import { User, UserDataFromToken, UserRole } from './interfaces/user.interface';
 import { DeleteResult } from 'typeorm';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { hasRoles } from 'src/auth/decorators/roles.decorator';
+import { HasRoles } from 'src/auth/decorators/roles.decorator';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ReqUpdateUserDTO } from './dtos/requests/update-user.dto';
 import { ResGetUserDTO } from '../users/dtos/responses/get-users.dto'
@@ -22,12 +22,12 @@ export class UsersController {
       private readonly usersService: UsersService,
     ) {}
 
-    @hasRoles(UserRole.ADMIN)
+    @HasRoles(UserRole.ADMIN)
     @UseGuards(RolesGuard)
     @ApiResponse({ status: 200, description: 'Get users', type: [ResGetUserDTO] })
     @Get()
     getUsers(): Promise<User[]> {
-      return this.usersService.findAll();
+      return this.usersService.getUsers();
     }
 
     @ApiResponse({ status: 200, description: 'Get one user by id', type: ResGetUserDTO })
@@ -39,12 +39,12 @@ export class UsersController {
       schema: { oneOf: [{type: 'string'}, {type: 'integer'}]}
     })
     @Get('/:id')
-    getUserById(@Param('id', ParseIntPipe) id): Promise<User> {
-      return this.usersService.findOne(id);
+    findOneById(@Param('id', ParseIntPipe) id): Promise<User> {
+      return this.usersService.findOneById(id);
     }
     
     @ApiResponse({ status: 200, description: 'Delete user by id', type: ResDeleteUsersDTO })
-    @hasRoles(UserRole.ADMIN)
+    @HasRoles(UserRole.ADMIN)
     @UseGuards(RolesGuard)
     @UsePipes(new ValidationPipe({ transform: true }))
     @ApiParam({
@@ -55,11 +55,11 @@ export class UsersController {
     })
     @Delete('/:id')
     deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<DeleteResult> {
-      return this.usersService.delete(id);
+      return this.usersService.deleteUserById(id);
     }
 
     @ApiResponse({ status: 200, description: 'Update user by id', type: ResUpdateUserDTO })
-    @hasRoles(UserRole.ADMIN)
+    @HasRoles(UserRole.ADMIN)
     @UsePipes(new ValidationPipe({ transform: true }))
     @ApiBody({type: ReqUpdateUserDTO})
     @UseGuards(JwtAuthGuard)
@@ -67,6 +67,6 @@ export class UsersController {
     @ApiConsumes('multipart/form-data')
     @UseInterceptors(FileInterceptor('avatar'))
     async updateUserById(@UserFromToken() user: UserDataFromToken, @Body() data: ReqUpdateUserDTO, @UploadedFile() avatar: Express.Multer.File) {
-      return this.usersService.updateById(user.id, data, avatar);
+      return this.usersService.updateUserById(user.id, data, avatar);
     }
 }

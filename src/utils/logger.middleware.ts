@@ -11,7 +11,7 @@ export class LoggerMiddleware implements NestMiddleware {
     const endpoint = req.params[0];
 
     const data = {body, endpoint};
-    const store = new Map(); // .set('traceIdAndData', traceIdAndData);
+    const store = new Map();
     store.set('traceId', traceId);
     store.set('data', data);
     asyncLocalStorage.run(store, () => {

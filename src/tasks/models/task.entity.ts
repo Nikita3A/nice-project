@@ -26,10 +26,10 @@ export class TaskEntity {
   @Column('enum', {enum: Priority, default: Priority[Priority.MEDIUM]})
   priority: Priority;
 
-  @ManyToOne(() => UserEntity, user => user.createdTasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => UserEntity, user => user.created_tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   createdBy: UserEntity;
   
-  @ManyToOne(() => UserEntity, user => user.assignedTasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @ManyToOne(() => UserEntity, user => user.assigned_tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   assignedTo?: UserEntity;
 
   @ManyToOne(() => TeamEntity, team => team.tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })

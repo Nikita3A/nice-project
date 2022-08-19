@@ -1,3 +1,5 @@
+import { File } from "@google-cloud/storage";
+
 export interface User {
     id?: number;
     name?: string;
@@ -23,4 +25,10 @@ export interface UserDataFromToken {
     name: string;
     email: string;
     role: UserRole;
+}
+
+export interface UpdateUser {
+    name?: string;
+    password?: string;
+    avatar?: File;
 }
