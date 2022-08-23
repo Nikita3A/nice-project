@@ -12,12 +12,14 @@ import { LoggerMiddleware } from './utils/logger.middleware';
 import { APP_GUARD } from '@nestjs/core';
 import { TokenGuard } from './auth/guards/token.guard';
 import { StorageModule } from './storage/storage.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory: (cfg: ConfigService) => ({
         type: 'postgres',

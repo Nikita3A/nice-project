@@ -27,10 +27,10 @@ export class TaskEntity {
   priority: Priority;
 
   @ManyToOne(() => UserEntity, user => user.created_tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  createdBy: UserEntity;
+  created_by: UserEntity;
   
   @ManyToOne(() => UserEntity, user => user.assigned_tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  assignedTo?: UserEntity;
+  assigned_to?: UserEntity;
 
   @ManyToOne(() => TeamEntity, team => team.tasks, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   team: TeamEntity;

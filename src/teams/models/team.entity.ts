@@ -12,10 +12,10 @@ export class TeamEntity {
   name: string;
 
   @ManyToOne(() => UserEntity, user => user.id, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  createdBy: UserEntity;
+  created_by: UserEntity;
 
   @OneToMany(() => TeamsUsersEntity, (teamUsers) => teamUsers.team)
-  teamUsers: TeamsUsersEntity[];
+  members: TeamsUsersEntity[];
 
   @OneToMany(() => TaskEntity, task => task.team, {onUpdate: 'CASCADE'})
   tasks: TaskEntity[];

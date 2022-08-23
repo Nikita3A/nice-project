@@ -11,7 +11,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;  
   
-  app.setGlobalPrefix('api');
+  // app.setGlobalPrefix('api');
   Sentry.init({
     environment: configService.get('SENTRY_ENVIRONMENT_DEVELOPMENT'),
     dsn: 'https://7fbbf24340894dad941e68099372be32@o1278899.ingest.sentry.io/6478950',

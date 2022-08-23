@@ -9,8 +9,8 @@ export interface Task {
     time: Date,
     status: Status;
     priority: Priority;
-    createdBy: UserEntity,
-    assignedTo?: UserEntity,
+    created_by: UserEntity,
+    assigned_to?: UserEntity,
     team: TeamEntity,
   }
 
