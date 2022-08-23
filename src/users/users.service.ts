@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { UserEntity } from './models/user.entity';
 import { UpdateUser, User, UserRole } from './interfaces/user.interface';
-import { ReqUpdateUserDTO } from './dtos/requests/update-user.dto';
 import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
@@ -15,7 +14,7 @@ export class UsersService {
         private readonly storageService: StorageService,
     ) {}
 
-    signup(user: User, passwordHash: string): Promise<User> {
+    signup(user: User, passwordHash: string, hash: string): Promise<User> {
         const newUser = new UserEntity();
         newUser.name = user.name;
         newUser.email = user.email;
@@ -24,6 +23,7 @@ export class UsersService {
         newUser.role = UserRole.USER;
         newUser.created_on = new Date().toLocaleDateString();
         newUser.last_login = new Date().toLocaleDateString();
+        newUser.verification_hash = hash;
         return this.usersRepository.save(newUser);
     }
 
@@ -31,8 +31,8 @@ export class UsersService {
         return this.usersRepository.find();
     }
 
-    findOne(param: string): Promise<User> {
-        return this.usersRepository.findOne({email: param});
+    findOne(param: any): Promise<User> {
+        return this.usersRepository.findOne(param);
     }
 
     findOneById(id: number): Promise<User> {

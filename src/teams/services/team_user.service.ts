@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm/repository/Repository';
 import { TeamEntity } from '../models/team.entity';
-import { TeamsUsers, UserRoleInTeam } from '../interfaces/team.interface';
+import { Team, TeamsUsers, UserRoleInTeam } from '../interfaces/team.interface';
 import { User, UserDataFromToken } from 'src/users/interfaces/user.interface';
 import { TeamsUsersEntity } from '../models/team_user.entity';
 
@@ -13,7 +13,7 @@ export class TeamsUsersService {
         private teamsUsersRepository: Repository<TeamsUsersEntity>,
     ) {}
     
-    async getTeams (id: number) {
+    async getTeams (id: number): Promise<Team[]> {
         const data = await this.teamsUsersRepository.query(`
         WITH v1 as (SELECT team_entity.id AS id FROM "teams_users_entity" 
         INNER JOIN "team_entity" ON "teamId" = team_entity.id

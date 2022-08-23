@@ -10,6 +10,7 @@ import { ReqSignUpDTO } from './dtos/requests/sign-up.dto';
 import { ReqSignInDTO } from './dtos/requests/sign-in.dto';
 import { ReqResetPasswordDTO } from './dtos/requests/ResetPassword.dto';
 import { MailService } from 'src/mail/mail.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,7 @@ export class AuthService {
     ) {}
 
     async signup(userData: ReqSignUpDTO) {
-        const user = await this.usersService.findOne(userData.email);
+        const user = await this.usersService.findOne({email: userData.email});
         if (user) throw new HttpException('User with such email already exist', HttpStatus.BAD_REQUEST);
 
         const userToConfirm = {
@@ -35,11 +36,11 @@ export class AuthService {
         await this.mailService.sendUserConfirmation(userToConfirm, tokenForConfirmation);
         const passwordHash = await this.hashPassword(userData.password);
 
-        return await this.usersService.signup(userData, passwordHash);
+        return await this.usersService.signup(userData, passwordHash, tokenForConfirmation);
     }
 
     async signin(credentials: ReqSignInDTO) {
-        const isUserExist = await this.usersService.findOne(credentials.email);
+        const isUserExist = await this.usersService.findOne({email: credentials.email});
         if (!isUserExist) throw new HttpException('User with such email does not exist', HttpStatus.FORBIDDEN);
         
         if (isUserExist.isEmailVerified == false) throw new HttpException('Verify your email', HttpStatus.FORBIDDEN);
@@ -50,7 +51,7 @@ export class AuthService {
     }
 
     validateUser(email: string, password: string) {
-        return this.usersService.findOne(email).then(async (user) => {            
+        return this.usersService.findOne({email}).then(async (user) => {            
             const isPasswordRight = await this.comparePasswords(password, user.password);
             
             if (isPasswordRight) {
@@ -62,15 +63,13 @@ export class AuthService {
         });
     }
 
-    async verifyEmail(token: string) {
-        const userFromPayload = this.getUserDataFromToken(token);
-        const user = await this.usersService.findOne(userFromPayload.email);
-
+    async verifyEmail(token: string) {        
+        const user = await this.usersService.findOne({verification_hash: token});
         return await this.usersService.verifyEmail(user.id);
     }
 
     async forgotPassword(email: string) {
-        const user = await this.usersService.findOne(String(email));
+        const user = await this.usersService.findOne({email});
         
         if (!user) throw new HttpException('User with such email does not exist', HttpStatus.FORBIDDEN);
         
@@ -115,12 +114,11 @@ export class AuthService {
     }
 
     blackListToken(token: string) {
-        return this.tokenRepository.save({token});
+        return this.tokenRepository.save({token: token, created_at: new Date()});
     }
 
     findBlackListedToken(token: string): Promise<TokenEntity> {
-        const data = this.tokenRepository.findOne({token: token});
-        return data;
+        return this.tokenRepository.findOne({token: token});
     }
 
     getUserDataFromToken(token: string) {
@@ -128,4 +126,15 @@ export class AuthService {
         return Object(payLoad)["user"];
     }
 
+    @Cron(CronExpression.EVERY_DAY_AT_10AM)
+    async deleteBlackListedTokens() {
+        const date = new Date();
+        date.setSeconds(date.getSeconds() - 10000);
+        
+        await this.tokenRepository.query(`
+        DELETE FROM token_entity
+        WHERE created_at <= '${date.toISOString()}';`);
+
+        console.log(`The token's table is cleaned`);        
+    }
 }

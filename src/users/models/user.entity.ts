@@ -29,13 +29,16 @@ export class UserEntity {
   @Column()
   email_verified: boolean;
 
+  @Column()
+  verification_hash: string;
+
   @OneToMany(() => TeamEntity, team => team.id, { onDelete: 'CASCADE' })
   team: TeamEntity[];
 
-  @OneToMany(() => TaskEntity, task => task.createdBy)
+  @OneToMany(() => TaskEntity, task => task.created_by)
   created_tasks: TaskEntity[];
 
-  @OneToMany(() => TaskEntity, task => task.assignedTo, {onUpdate: 'CASCADE'})
+  @OneToMany(() => TaskEntity, task => task.assigned_to, {onUpdate: 'CASCADE'})
   assigned_tasks: TaskEntity[];
 
   @OneToMany(() => TeamsUsersEntity, (teamUsers) => teamUsers.user, {onUpdate: 'CASCADE'})

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm/repository/Repository';
 import { TeamEntity } from '../models/team.entity';
-import { UserRoleInTeam } from '../interfaces/team.interface';
+import { Team, UserRoleInTeam } from '../interfaces/team.interface';
 import { UserDataFromToken } from 'src/users/interfaces/user.interface';
 import { UserEntity } from 'src/users/models/user.entity';
 import { UsersService } from 'src/users/users.service';
@@ -28,7 +28,7 @@ export class TeamService {
         
         const team = new TeamEntity();
         team.name = teamName;
-        team.createdBy = userEntity;
+        team.created_by = userEntity;
 
         const createdTeam = await this.teamRepository.save(team);
         
@@ -43,7 +43,7 @@ export class TeamService {
 
     async addUserToTeam (ids: Ids, email: string, role: UserRoleInTeam) {
         const team = await this.teamRepository.findOne(ids.teamId);        
-        const user = await this.usersService.findOne(email);
+        const user = await this.usersService.findOne({email});
         if (!user) throw new HttpException('You can not add the user with such an email because the user does not exist', HttpStatus.BAD_REQUEST);
         
         const member = await this.isMemberOfTeam(team.id, ids.userId);
@@ -64,7 +64,7 @@ export class TeamService {
         return this.teamRepository.update(teamId, {name: name});
     }
 
-    async getTeams(id: number)/*: Promise<Team[]>*/ {        
+    async getTeams(id: number): Promise<Team[]> {        
         return this.memberService.getTeams(id);
     }
 
@@ -84,12 +84,12 @@ export class TeamService {
         const member = await this.isMemberOfTeam(teamId, userId);
         let assignedTo;
 
-        const user = await this.usersService.findOne(taskDTO.assignedTo);
+        const user = await this.usersService.findOne({email: taskDTO.assignedTo});
         assignedTo = await this.memberService.findUser(teamId, user?.id);
-
-        if (assignedTo == undefined) assignedTo = member.user;
+        
         if (assignedTo == undefined && taskDTO.assignedTo) throw new HttpException('Assignee is not member of the team', HttpStatus.BAD_REQUEST);
-
+        if (assignedTo == undefined) assignedTo = member.user;
+        
         const userEntity: UserEntity = Object.assign(new UserEntity(), member.user);
         const teamEntity = await this.teamRepository.findOne(teamId);
         
@@ -98,7 +98,7 @@ export class TeamService {
             teamEntity: teamEntity,
             userEntity: userEntity,
         }
-        
+
         return await this.taskService.createTask(taskDTO, entities);
     }
 
@@ -108,7 +108,7 @@ export class TeamService {
         let assignee;
 
         if (body.assignedTo) {
-            const userToassign = await this.usersService.findOne(body.assignedTo);
+            const userToassign = await this.usersService.findOne({email: body.assignedTo});
             assignee = await this.memberService.findUser(ids.teamId, userToassign?.id);
             if (!assignee) throw new HttpException('Assignee is not member of the team', HttpStatus.BAD_REQUEST);
         }
