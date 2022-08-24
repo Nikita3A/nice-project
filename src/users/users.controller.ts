@@ -39,8 +39,8 @@ export class UsersController {
       schema: { oneOf: [{type: 'string'}, {type: 'integer'}]}
     })
     @Get('/:id')
-    findOneById(@Param('id', ParseIntPipe) id): Promise<User> {
-      return this.usersService.findOneById(id);
+    findById(@Param('id', ParseIntPipe) id): Promise<User> {
+      return this.usersService.findById(id);
     }
     
     @ApiResponse({ status: 200, description: 'Delete user by id', type: ResDeleteUsersDTO })
