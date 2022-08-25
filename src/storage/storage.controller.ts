@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Post, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { CacheInterceptor, Controller, Delete, Get, Post, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiResponse } from '@nestjs/swagger';
 import { UserFromToken } from 'src/auth/decorators/dataFromToken.decorator';
@@ -10,6 +10,7 @@ import { ResGetFileDTO } from './dtos/responses/get-file-from-storage.dto';
 import { ResUploadFileDTO } from './dtos/responses/upload-file.dto';
 import { StorageService } from './storage.service';
 
+@UseInterceptors(CacheInterceptor)
 @Controller('storage')
 export class StorageController {
     constructor(

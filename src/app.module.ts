@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { CacheInterceptor, CacheModule, MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -9,15 +9,29 @@ import { TeamModule } from './teams/team.module';
 import { TaskModule } from './tasks/task.module';
 import { LoggerModule } from './logger/logger.module';
 import { LoggerMiddleware } from './utils/logger.middleware';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TokenGuard } from './auth/guards/token.guard';
 import { StorageModule } from './storage/storage.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: (cfg: ConfigService) => ({
+        store: redisStore,
+        host: cfg.get('HOST'),
+        port: cfg.get('REDIS_PORT'),
+        password: cfg.get('REDIS_PASSWORD'),
+        ttl: 120,
+      }),
+      inject: [ConfigService],
+    }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       useFactory: (cfg: ConfigService) => ({
         type: 'postgres',
@@ -43,6 +57,10 @@ import { StorageModule } from './storage/storage.module';
     {
       provide: APP_GUARD,
       useClass: TokenGuard,
+    },
+    {
+      provide:APP_INTERCEPTOR,
+      useClass: CacheInterceptor
     },
   ],
 })

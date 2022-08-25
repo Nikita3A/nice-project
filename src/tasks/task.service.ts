@@ -22,14 +22,13 @@ export class TaskService {
             title: taskDTO.title,
             description: taskDTO.description,
             date: !taskDTO.date ? new Date(): taskDTO.date,
-            time: taskDTO.time, 
+            time: taskDTO.time ? taskDTO.time: null, 
             status: taskDTO.status,
             priority: taskDTO.priority,
-            createdBy: entities.userEntity,
-            assignedTo: !entities.assignedTo ? null: entities.assignedTo,
+            created_by: entities.userEntity,
+            assigned_to: !entities.assignedTo ? null: entities.assignedTo,
             team: entities.teamEntity,
         };
-        
         return this.taskRepository.save(task);
     }
 

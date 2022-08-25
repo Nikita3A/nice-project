@@ -7,19 +7,15 @@ import { LoggingInterceptor } from './logger/logging.interceptor';
 import * as Sentry from '@sentry/node';
 
 async function bootstrap() {
-
-  // const app = await NestFactory.create(AppModule, {
-  //   logger: false
-  // });
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;  
   
   // app.setGlobalPrefix('api');
-  // Sentry.init({
-  //   environment: configService.get('SENTRY_ENVIRONMENT_DEVELOPMENT'),
-  //   dsn: 'https://7fbbf24340894dad941e68099372be32@o1278899.ingest.sentry.io/6478950',
-  // });
+  Sentry.init({
+    environment: configService.get('SENTRY_ENVIRONMENT_DEVELOPMENT'),
+    dsn: 'https://7fbbf24340894dad941e68099372be32@o1278899.ingest.sentry.io/6478950',
+  });
 
   const config = new DocumentBuilder()
   .addBearerAuth()
@@ -34,6 +30,6 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useLogger(app.get(PinoLoggerService));
   
-  await app.listen(port, () => {console.log('Server is running on: http://localhost:3000/api/')});
+  await app.listen(port, () => {console.log(`Server is running on: http://localhost:${port}/api/`)});
 }
 bootstrap();

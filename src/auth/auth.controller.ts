@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Logger, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, CacheInterceptor, Controller, Get, Headers, Logger, Post, Query, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiBody, ApiBearerAuth, ApiHeader, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ReqSignInDTO } from '../auth/dtos/requests/sign-in.dto'; 
 import { ReqSignUpDTO } from '../auth/dtos/requests/sign-up.dto';
@@ -12,6 +12,7 @@ import { ResForgotPasswordDTO } from './dtos/responses/ForgotPassword.dto';
 import { ResLogoutDTO } from './dtos/responses/logout.dto';
 import { ResResetPasswordDTO } from './dtos/responses/reset-password.dto';
 
+@UseInterceptors(CacheInterceptor)
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
@@ -23,12 +24,12 @@ export class AuthController {
     @ApiBody({ type: ReqSignUpDTO })
     @ApiResponse({ status: 201, description: 'SignUp', type: ResSignUpDTO})
     @UsePipes(new ValidationPipe({ transform: true }))
-    async signup(@Body() user: ReqSignUpDTO) {
+    signup(@Body() user: ReqSignUpDTO) {
       return this.authService.signup(user);
     }
 
     @Get('users/confirm?')
-    async confirmUser(@Query('token') token) {
+    async verifyEmail(@Query('token') token) {
       return this.authService.verifyEmail(token);
     }
 
@@ -36,7 +37,7 @@ export class AuthController {
     @ApiBody({type: ReqSignInDTO})
     @ApiResponse({ status: 201, description: 'SignIn', type: ResSignInDTO})
     async signin(@Body() user: ReqSignInDTO) {
-      return this.authService.signin(user);
+      return await this.authService.signin(user);
     }
 
     @Post('logout')
@@ -46,22 +47,20 @@ export class AuthController {
       name: 'Authorization',
       description: 'Adding a token to the blacklist',
     })
-    logout(@Headers('Authorization') token: string): Promise<Token> {
+    blackListToken(@Headers('Authorization') token: string): Promise<Token> {
       return this.authService.blackListToken(token);
     }
 
 
-    @Post('forgotPassword')
+    @Post('forgot-password')
     @UsePipes(new ValidationPipe({ transform: true }))
     @ApiBody({ type: ReqForgotPasswordDTO })
     @ApiResponse({ status: 200, description: 'ForgotPassword', type: ResForgotPasswordDTO})
-    async forgotPassword(@Body() email: ReqForgotPasswordDTO) {
-      console.log('a: ', email.email);
-      
+    async forgotPassword(@Body() email: ReqForgotPasswordDTO) {      
       return await this.authService.forgotPassword(email.email);
     }
 
-    @Post('users/resetPassword?')
+    @Post('users/reset-password?')
     @UsePipes(new ValidationPipe({ transform: true }))
     @ApiBody({ type: ReqResetPasswordDTO })
     @ApiQuery({ name: 'token' })
