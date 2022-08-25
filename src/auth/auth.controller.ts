@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Logger, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, CacheInterceptor, Controller, Get, Headers, Logger, Post, Query, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiBody, ApiBearerAuth, ApiHeader, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ReqSignInDTO } from '../auth/dtos/requests/sign-in.dto'; 
 import { ReqSignUpDTO } from '../auth/dtos/requests/sign-up.dto';
@@ -12,6 +12,7 @@ import { ResForgotPasswordDTO } from './dtos/responses/ForgotPassword.dto';
 import { ResLogoutDTO } from './dtos/responses/logout.dto';
 import { ResResetPasswordDTO } from './dtos/responses/reset-password.dto';
 
+@UseInterceptors(CacheInterceptor)
 @Controller('auth')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);

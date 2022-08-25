@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, CacheInterceptor, Controller, Delete, Get, Param, Patch, Post, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-guard';
 import { UserRoleInTeam } from './interfaces/team.interface';
 import { TeamService } from '../teams/services/team.service';
@@ -22,6 +22,7 @@ import { ReqUpdateTaskDTO } from '../tasks/dtos/requests/update-task.dto';
 import { ResUpdateTaskDTO } from 'src/tasks/dtos/responses/update-task.dtol';
 import { Ids } from './interfaces/team-task.interface';
 
+@UseInterceptors(CacheInterceptor)
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 @Controller('teams')
